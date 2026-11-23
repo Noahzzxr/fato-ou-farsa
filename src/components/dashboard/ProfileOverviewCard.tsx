@@ -1,0 +1,165 @@
+// Cabeçalho do resultado: dados do perfil, origem dos dados e ações.
+
+import React from 'react';
+import {
+  ExternalLink,
+  CheckCircle,
+  Database,
+  RotateCcw,
+  Download,
+  ShieldAlert,
+  Video,
+} from 'lucide-react';
+import { TikTokProfile } from '../../types';
+
+interface ProfileOverviewCardProps {
+  profile: TikTokProfile;
+  totalPosts: number;
+  isDemo: boolean;
+  selectedDemoId: string;
+  onSelectDemo: (demoId: string) => void;
+  onNewAnalysis: () => void;
+  onExport: () => void;
+  onOpenReporting: () => void;
+  investigatedAt: string;
+}
+
+export const ProfileOverviewCard: React.FC<ProfileOverviewCardProps> = ({
+  profile,
+  totalPosts,
+  isDemo,
+  selectedDemoId,
+  onSelectDemo,
+  onNewAnalysis,
+  onExport,
+  onOpenReporting,
+  investigatedAt,
+}) => {
+  return (
+    <div className="space-y-3">
+      {isDemo && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-md border border-amber-200 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/40 p-3 text-xs text-amber-900 dark:text-amber-200">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">Você está vendo um exemplo</span>
+            <span className="text-amber-700 dark:text-amber-400">
+              (perfil fictício, criado para mostrar como o resultado funciona)
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <label className="text-[11px] font-medium text-amber-800 dark:text-amber-300">
+              Trocar exemplo:
+            </label>
+            <select
+              value={selectedDemoId}
+              onChange={(e) => onSelectDemo(e.target.value)}
+              className="rounded-lg border border-amber-300 dark:border-amber-800 bg-white dark:bg-slate-900 px-2.5 py-1 text-xs text-slate-800 dark:text-slate-100 focus:outline-none"
+            >
+              <option value="saude_vital">Saúde Vital (Alegações Médicas)</option>
+              <option value="tech_investimentos">Tech Investimentos (Robô de Pix)</option>
+              <option value="dra_mariana">Dra. Mariana (Perfil Científico / USP)</option>
+              <option value="noticias_urgente">Plantão Brasil (Cortes Sensacionalistas)</option>
+            </select>
+          </div>
+        </div>
+      )}
+
+      <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div className="flex items-start gap-4">
+            <img
+              src={profile.avatarUrl}
+              alt={profile.fullName}
+              className="h-16 w-16 sm:h-18 sm:w-18 rounded-lg object-cover border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 shrink-0"
+            />
+
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                  {profile.fullName}
+                </h2>
+                {profile.isVerified && (
+                  <span
+                    className="inline-flex items-center gap-1 rounded-md bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:text-blue-300"
+                    title="Conta verificada no TikTok"
+                  >
+                    <CheckCircle className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                    <span>Verificado no TikTok</span>
+                  </span>
+                )}
+                <span className="rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] text-slate-600 dark:text-slate-400">
+                  {profile.category}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                <span className="font-mono font-medium text-[#003876] dark:text-blue-400">
+                  @{profile.username}
+                </span>
+                <span>•</span>
+                <a
+                  href={profile.profileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 hover:underline hover:text-slate-900 dark:hover:text-slate-200"
+                >
+                  <span className="truncate max-w-[200px] sm:max-w-xs">{profile.profileUrl}</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+
+              <p className="text-xs text-slate-600 dark:text-slate-300 pt-0.5 max-w-2xl leading-relaxed">
+                {profile.biography}
+              </p>
+
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                <span className="flex items-center gap-1">
+                  <Video className="h-3 w-3" />
+                  <strong>{totalPosts} vídeos analisados</strong>
+                </span>
+                <span>•</span>
+                <span>
+                  Analisado em <strong>{investigatedAt}</strong>
+                </span>
+                <span>•</span>
+                <span className="flex items-center gap-1">
+                  <Database className="h-3 w-3" />
+                  Dados: <strong>números públicos do perfil</strong>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end gap-2 shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-150 dark:border-slate-800 w-full lg:w-auto">
+            <button
+              onClick={onNewAnalysis}
+              className="w-full sm:w-auto lg:w-full flex items-center justify-center gap-1.5 rounded-md bg-[#003876] dark:bg-blue-600 hover:bg-[#002D62] dark:hover:bg-blue-500 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition-colors cursor-pointer min-h-[42px] sm:min-h-0"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>Analisar outro vídeo</span>
+            </button>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+              <button
+                onClick={onExport}
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-lg border border-emerald-300 dark:border-emerald-800/80 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-2 text-xs font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors shadow-xs cursor-pointer min-h-[40px] sm:min-h-0"
+                title="Baixar este resultado em PDF"
+              >
+                <Download className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>Baixar relatório (PDF)</span>
+              </button>
+
+              <button
+                onClick={onOpenReporting}
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-lg border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 px-3 py-2 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors min-h-[40px] sm:min-h-0"
+              >
+                <ShieldAlert className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
+                <span>Como denunciar no TikTok</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

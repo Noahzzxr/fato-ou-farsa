@@ -1,0 +1,26 @@
+# Environment variables & secrets (never commit .env files)
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+server.js
+staticfiles/
+
+# Python caches & tests
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+
+# Browser testing artifacts
+.playwright-cli/
+
+# Banco local do Django
+db.sqlite3

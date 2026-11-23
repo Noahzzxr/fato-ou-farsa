@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fato ou Farsa — Confira se um vídeo do TikTok é verdade</title>
+    <meta name="description" content="Cole o link de um vídeo do TikTok e veja se o que é dito tem base em fontes confiáveis, como órgãos oficiais e agências de checagem." />
+    <meta property="og:title" content="Fato ou Farsa — Confira se um vídeo do TikTok é verdade" />
+    <meta property="og:description" content="Cole o link de um vídeo do TikTok e veja se o que é dito tem base em fontes confiáveis, como órgãos oficiais e agências de checagem." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/png" href="/assets/brand/fato_ou_farsa_icon_clean.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+      // Aplica o tema salvo antes do React carregar (evita piscar a tela)
+      (function () {
+        try {
+          var cfg = JSON.parse(localStorage.getItem('fatooufarsa_theme_config') || 'null');
+          var isDark = !!cfg && (cfg.mode === 'dark' || (cfg.mode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches));
+          document.documentElement.classList.toggle('dark', isDark);
+          document.documentElement.classList.toggle('reduce-motion', !!(cfg && cfg.reducedMotion));
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-blue-500/20 selection:text-blue-900 dark:selection:bg-blue-500/30 dark:selection:text-blue-200">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

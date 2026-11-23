@@ -1,0 +1,267 @@
+// Exportação do relatório: PDF, texto ou JSON.
+
+import React, { useState } from 'react';
+import {
+  X,
+  Download,
+  Copy,
+  Printer,
+  Check,
+  FileText,
+  ShieldCheck,
+  Hash,
+  ListVideo,
+  Loader2,
+  FileDown,
+} from 'lucide-react';
+import { InvestigationReport } from '../../types';
+import { formatNumberBR, formatPercentBR } from '../../utils/statistics';
+import { exportReportToForensicPDF } from '../../utils/pdfExport';
+
+interface ReportExportModalProps {
+  report: InvestigationReport | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const ReportExportModal: React.FC<ReportExportModalProps> = ({
+  report,
+  isOpen,
+  onClose,
+}) => {
+  const [copied, setCopied] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [pdfSuccess, setPdfSuccess] = useState(false);
+  const [includeFullVideoList, setIncludeFullVideoList] = useState(true);
+  const [includeForensicHash, setIncludeForensicHash] = useState(true);
+
+  if (!isOpen || !report) return null;
+
+  const handleExportPdf = async () => {
+    setIsExportingPdf(true);
+    setPdfSuccess(false);
+    try {
+      await exportReportToForensicPDF(report, {
+        includeFullVideoList,
+        includeForensicHash,
+      });
+      setPdfSuccess(true);
+      setTimeout(() => setPdfSuccess(false), 3500);
+    } catch (err) {
+      console.error('Erro ao gerar o PDF:', err);
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
+
+  const handleCopyText = () => {
+    const textSummary = `
+RELATÓRIO DE ANÁLISE - FATO OU FARSA (TIKTOK)
+--------------------------------------------------
+Perfil / Conteúdo: @${report.profile.username} (${report.profile.fullName})
+Data da análise: ${report.createdAt}
+Classificação: ${report.aiAnalysis.classification}
+Força das evidências: ${report.aiAnalysis.confidenceLevel} (${report.aiAnalysis.confidenceScore}%)
+
+RESUMO:
+${report.aiAnalysis.evidenceSummary}
+
+RESUMO ESTATÍSTICO:
+- Vídeos analisados: ${report.statistics.totalPostsAnalyzed}
+- Mediana de visualizações: ${formatNumberBR(report.statistics.medianViews)}
+- Mediana de Curtidas: ${formatNumberBR(report.statistics.medianLikes)}
+- Relação Curtidas/Views: ${formatPercentBR(report.statistics.likesToViewsRatio, 2)}
+- Vídeos fora do padrão: ${report.statistics.outlierCount}
+- Engajamento suspeito: ${report.statistics.suspiciousEngagementScore}/100
+
+POR QUE CHEGAMOS A ESSE RESULTADO:
+${report.aiAnalysis.supportingObservations.map((o) => `• ${o}`).join('\n')}
+
+OUTRAS EXPLICAÇÕES POSSÍVEIS:
+${report.aiAnalysis.alternativeExplanations.map((a) => `• ${a}`).join('\n')}
+
+LIMITAÇÕES:
+${report.aiAnalysis.limitations.map((l) => `• ${l}`).join('\n')}
+
+PRÓXIMOS PASSOS:
+${report.aiAnalysis.recommendedNextSteps.map((s) => `• ${s}`).join('\n')}
+--------------------------------------------------
+Gerado pelo Fato ou Farsa. Números isolados não provam má-fé: confira sempre as fontes.
+    `.trim();
+
+    navigator.clipboard.writeText(textSummary);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownloadJson = () => {
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(report, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', `relatorio-fato-ou-farsa-${report.profile.username}-${Date.now()}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 animate-in fade-in duration-150"
+    >
+      <div className="relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-lg border border-blue-800/40 bg-slate-900 shadow-md overflow-hidden text-slate-100">
+        <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-950/80">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md border border-emerald-500/30 bg-emerald-950/40 text-emerald-400">
+              <FileDown className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-slate-100 font-sans flex items-center gap-2">
+                Baixar relatório
+              </h2>
+              <p className="text-xs text-slate-400">
+                Salve o resultado para guardar, imprimir ou enviar para alguém.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-colors cursor-pointer"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-5">
+          <div className="rounded-md border border-emerald-500/30 bg-slate-900 p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  Relatório em PDF (tamanho A4)
+                </h3>
+                <p className="text-xs text-slate-300 leading-relaxed max-w-md">
+                  Inclui os dados do perfil, os números dos vídeos, a classificação final, os motivos e as fontes consultadas.
+                </p>
+              </div>
+
+              <button
+                onClick={handleExportPdf}
+                disabled={isExportingPdf}
+                className="flex items-center justify-center gap-2 rounded-md bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800 text-white font-bold px-5 py-3 text-xs shadow-sm transition-all cursor-pointer shrink-0"
+              >
+                {isExportingPdf ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Gerando PDF...</span>
+                  </>
+                ) : pdfSuccess ? (
+                  <>
+                    <Check className="w-4 h-4 text-white" />
+                    <span>PDF Baixado!</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    <span>Baixar PDF</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="pt-3 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={includeForensicHash}
+                  onChange={(e) => setIncludeForensicHash(e.target.checked)}
+                  className="rounded border-slate-700 bg-slate-950 text-emerald-500 focus:ring-emerald-500"
+                />
+                <span className="flex items-center gap-1.5">
+                  <Hash className="w-3.5 h-3.5 text-emerald-400" />
+                  Código de verificação (prova que o arquivo não foi alterado)
+                </span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none">
+                <input
+                  type="checkbox"
+                  checked={includeFullVideoList}
+                  onChange={(e) => setIncludeFullVideoList(e.target.checked)}
+                  className="rounded border-slate-700 bg-slate-950 text-emerald-500 focus:ring-emerald-500"
+                />
+                <span className="flex items-center gap-1.5">
+                  <ListVideo className="w-3.5 h-3.5 text-blue-400" />
+                  Incluir a lista completa de vídeos
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs text-slate-400">
+              <span>Prévia do que vai no relatório:</span>
+              <span className="font-mono text-[11px] text-emerald-400">@{report.profile.username}</span>
+            </div>
+            <div className="rounded-md border border-slate-800 bg-slate-950/70 p-4 font-mono text-xs text-slate-300 space-y-2 whitespace-pre-wrap max-h-48 overflow-y-auto">
+              <div className="text-emerald-400 font-bold border-b border-slate-800 pb-2">
+                RELATÓRIO — FATO OU FARSA
+              </div>
+              <div>
+                <strong>Perfil:</strong> @{report.profile.username} ({report.profile.fullName})
+              </div>
+              <div>
+                <strong>Classificação:</strong> {report.aiAnalysis.classification}
+              </div>
+              <div>
+                <strong>Força das evidências:</strong> {report.aiAnalysis.confidenceLevel} ({report.aiAnalysis.confidenceScore}%)
+              </div>
+              <div className="text-slate-400 pt-1">
+                <strong>Resumo:</strong> {report.aiAnalysis.evidenceSummary}
+              </div>
+              <div className="text-slate-400">
+                <strong>Vídeos analisados:</strong> {report.statistics.totalPostsAnalyzed} |{' '}
+                <strong>Vídeos com números fora do padrão:</strong> {report.statistics.outlierCount}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 border-t border-slate-800 bg-slate-950/80 px-5 sm:px-6 py-3.5 sm:py-4">
+          <button
+            onClick={handleCopyText}
+            className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-2.5 sm:py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition-colors cursor-pointer min-h-[40px] sm:min-h-0"
+          >
+            {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+            <span>{copied ? 'Copiado!' : 'Copiar Texto'}</span>
+          </button>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={handlePrint}
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-2.5 sm:py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition-colors cursor-pointer min-h-[40px] sm:min-h-0"
+              title="Abrir diálogo de impressão do navegador"
+            >
+              <Printer className="h-4 w-4" />
+              <span>Imprimir</span>
+            </button>
+
+            <button
+              onClick={handleDownloadJson}
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 rounded-lg border border-blue-900 bg-blue-950/60 hover:bg-blue-900/80 text-blue-300 px-3.5 py-2.5 sm:py-2 text-xs font-semibold shadow-sm transition-colors cursor-pointer min-h-[40px] sm:min-h-0"
+            >
+              <Download className="h-4 w-4" />
+              <span>Baixar JSON</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
